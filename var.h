@@ -23,6 +23,7 @@
 class Base {
 public:
 	virtual void notify() = 0;
+	virtual ~Base() {};
 };
 
 class Notifier : public Base {
@@ -30,6 +31,7 @@ class Notifier : public Base {
 public:
 	Notifier(sigc::slot<void> f_) : f(f_) {}
 	virtual void notify() { f(); }
+	virtual ~Notifier() {};
 };
 
 class Atomic {
@@ -52,14 +54,19 @@ protected:
 public:
 	void connect(Base *s) { out.insert(s); }
 	virtual T get() const = 0;
+	virtual ~Out() {};
 };
 
 template <class T> class In {
 public:
 	virtual void set(const T x) = 0;
+	virtual ~In() {};
 };
 
-template <class T> class IO : public In<T>, public Out<T> {};
+template <class T> class IO : public In<T>, public Out<T> {
+public:
+	virtual ~IO() {};
+};
 
 template <class T> class Source : public IO<T>, private Base {
 	T x;
@@ -80,6 +87,7 @@ public:
 	virtual void notify() { Out<T>::update(); }
 	// unsafe_refs even more so
 	T &unsafe_ref() { return x; }
+	virtual ~Source() {};
 };
 
 template <class T> class Var : public IO<T>, private Base {
@@ -93,6 +101,7 @@ public:
 		Out<T>::update();
 	}
 	virtual T get() const { return x; }
+	virtual ~Var() {};
 };
 
 template <class X, class Y> class Fun : public Out<Y>, private Base {
@@ -102,6 +111,7 @@ public:
 	Fun(sigc::slot<Y, X> f_, Out<X> &in_) : f(f_), in(in_) { in.connect(this); }
 	virtual Y get() const { return f(in.get()); }
 	virtual void notify() { Out<Y>::update(); }
+	virtual ~Fun() {};
 };
 
 template <class X, class Y> Fun<X, Y> *fun(Y (*f)(X), Out<X> &in) {
@@ -119,6 +129,7 @@ public:
 	}
 	virtual Z get() const { return f(inX.get(), inY.get()); }
 	virtual void notify() { Out<Z>::update(); }
+	virtual ~Fun2() {};
 };
 
 template <class X1, class X2, class Y> Fun2<X1, X2, Y> *fun2(Y (*f)(X1, X2), Out<X1> &in1, Out<X2> &in2) {
@@ -136,11 +147,13 @@ public:
 	virtual Y get() const { return f(in.get()); }
 	virtual void notify() { Out<Y>::update(); }
 	virtual void set(const Y y) { in.set(g(y)); }
+	virtual ~Bijection() {};
 };
 
 class Watcher : private Base {
 public:
 	template <class T> void watch(Out<T> &v) { v.connect(this); }
+	virtual ~Watcher() {};
 };
 
 class TimeoutWatcher : public Watcher {
@@ -167,5 +180,6 @@ public:
 			timeout();
 		}
 	}
+	virtual ~TimeoutWatcher() {};
 };
 #endif

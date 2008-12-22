@@ -109,7 +109,9 @@ bool Ranking::show() {
 }
 
 Glib::ustring format_float(float x) {
-	return Glib::ustring::format(std::fixed, std::setprecision(2), x);
+	char buf[16];
+	snprintf(buf, sizeof(buf), "%.2f", x);
+	return Glib::ustring(buf);
 }
 
 void Stats::on_stroke(Ranking *r) {

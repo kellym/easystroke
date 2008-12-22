@@ -73,7 +73,9 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 	if (!button && !timeout)
 		return;
 	ctx->set_source_rgba(1, 0, 0, 0.8);
-	Glib::ustring str = timeout ? "x" : Glib::ustring::format(button);
+        char buf[8];
+        snprintf(buf, sizeof(buf), "%d", button);
+	Glib::ustring str = timeout ? "x" : buf;
 	ctx->set_font_size(h*0.6);
 	Cairo::TextExtents te;
 	ctx->get_text_extents(str, te);
@@ -194,7 +196,7 @@ void Win::show_hide_icon() {
 	} else {
 		if (!icon)
 			return;
-		icon.reset();
+		icon.clear();
 	}
 }
 

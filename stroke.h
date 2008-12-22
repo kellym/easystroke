@@ -45,6 +45,7 @@ template<class T> class EasyIterator {
 public:
 	virtual const T operator++(int) = 0;
 	virtual operator bool() = 0;
+	virtual ~EasyIterator() {}
 };
 
 int get_default_button();
